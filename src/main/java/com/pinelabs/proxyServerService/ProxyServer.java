@@ -7,12 +7,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.nio.ByteBuffer;
 
 import org.apache.thrift.TException;
-import org.springframework.beans.factory.annotation.Value;
+
 
 import com.pinelabs.proxyServerService.logger.LoggerClass;
-import com.pinelabs.proxyServerService.utils.Utils;
+
 
 public class ProxyServer implements SendReceivePacketService.Iface{
 	
@@ -24,27 +25,25 @@ public class ProxyServer implements SendReceivePacketService.Iface{
 		this.HSMControllerIp = HSMControllerIp;
 		this.HSMControllerPort = HSMControllerPort;
 	}
+	
 	@Override
-	public String sendReceivePacket(String messageWritten) throws TException {
-		// TODO Auto-generated method stub
-		String receivedMsg = forwardRequest(messageWritten);
-		return receivedMsg;
+	public ByteBuffer sendReceivePacket(ByteBuffer messageWritten) throws TException {
+		ByteBuffer receivedBuff = forwardRequest(messageWritten.array());
+		return receivedBuff;
 	}
 
-	public String forwardRequest(String messageWritten) {
-		String receivedMsg="";
+	public ByteBuffer forwardRequest(byte[] messageWritten) {
+		byte[] data = new byte[1024];;
 		try
         {        
         Socket socket = new Socket(HSMControllerIp, HSMControllerPort);
         OutputStream out = new DataOutputStream(socket.getOutputStream());
         InputStream in = new DataInputStream(socket.getInputStream());
 	  
-   	    out.write(Utils.str2Bcd(messageWritten));
+   	    out.write(messageWritten);
 					   
-		//takes input from socket	
-	    byte[] data = new byte[1024];
+		//takes input from socket		    
 	    in.read(data);
-	    receivedMsg= Utils.bcd2Str(data);
         socket.close();
         }
         catch(UnknownHostException u)
@@ -55,6 +54,7 @@ public class ProxyServer implements SendReceivePacketService.Iface{
         {
         	LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, i.getMessage());;
         }
-		return receivedMsg;
+		return ByteBuffer.wrap(data);
 	}
+	
 }

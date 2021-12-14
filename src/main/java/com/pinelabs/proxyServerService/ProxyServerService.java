@@ -42,7 +42,6 @@ public class ProxyServerService  {
 
 	    LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Starting the secure server...");
 	    server.serve();
-	    LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Server Started...");
 	}
 
 }
