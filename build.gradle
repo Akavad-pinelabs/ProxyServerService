@@ -1,0 +1,29 @@
+plugins {
+	id 'org.springframework.boot' version '2.5.6'
+	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+	id 'java'
+}
+
+group = 'com.pinelabs'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '12'
+
+repositories {
+	mavenCentral()
+}
+
+configurations {
+    all*.exclude module : 'spring-boot-starter-logging'
+    all*.exclude module : 'logback-classic'
+}
+
+dependencies {
+	implementation 'org.springframework.boot:spring-boot-starter'
+	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+	implementation group: 'org.apache.thrift', name: 'libthrift', version: '0.15.0'
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
+}
+
+test {
+	useJUnitPlatform()
+}
