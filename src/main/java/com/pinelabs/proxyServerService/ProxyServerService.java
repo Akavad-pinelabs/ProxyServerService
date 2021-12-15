@@ -15,7 +15,7 @@ import com.pinelabs.proxyServerService.logger.LoggerClass;
 public class ProxyServerService {
 
 	@Value("${ssl.keystore.path}")
-	private String keystorePath;
+	private String keystorePath; 
 
 	@Value("${ssl.cert.password}")
 	private String certPswd;

@@ -53,6 +53,7 @@ public class ProxyServer implements SendReceivePacketService.Iface{
 			
 			int iDataLen = (uchHeaderBuff[6] << 8) & 0xFF00;
 			iDataLen |= uchHeaderBuff[7] & 0x00FF;
+			iDataLen += 1;
 			
 			byte[] uchBodyNTrailBuff = in.readNBytes(iDataLen);
 			
