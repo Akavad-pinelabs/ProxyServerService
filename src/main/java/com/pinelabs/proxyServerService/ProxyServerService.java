@@ -1,8 +1,10 @@
 package com.pinelabs.proxyServerService;
 
 import org.apache.thrift.TException;
+import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.server.TServer;
 import org.apache.thrift.server.TSimpleServer;
+import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TSSLTransportFactory;
 import org.apache.thrift.transport.TServerTransport;
 import org.apache.thrift.transport.TSSLTransportFactory.TSSLTransportParameters;
@@ -28,21 +30,43 @@ public class ProxyServerService {
 
 	@Value("${hsm.port}")
 	private int HSMControllerPort;
+	
+	private TServerTransport serverTransport;
 
 	public void startProxyServer() throws TException {
 
 		ProxyServer proxyServer = new ProxyServer(HSMControllerIp, HSMControllerPort);
 		SendReceivePacketService.Processor<ProxyServer> processor = new SendReceivePacketService.Processor<ProxyServer>(proxyServer);
-		
+					  
 		TSSLTransportParameters params = new TSSLTransportParameters();
 		params.setKeyStore(keystorePath, certPswd, null, null);
 
-		TServerTransport serverTransport = TSSLTransportFactory.getServerSocket(sslPort, 0, null, params);
+		serverTransport = TSSLTransportFactory.getServerSocket(sslPort, 0, null, params);
 		
-		TServer server = new TSimpleServer(new TServer.Args(serverTransport).processor(processor));
+		final TThreadPoolServer.Args args = new TThreadPoolServer
+			    .Args(serverTransport)
+			    .processorFactory(new TProcessorFactory(processor))
+			    .minWorkerThreads(5)
+			    .maxWorkerThreads(10);
 
+		final TServer server = new TThreadPoolServer(args);
+		
+		new Thread(new Runnable() {
+			@Override
+			public void run() {
+				server.serve();
+			}
+		}).start();
+		
+		/*TServer server = new TSimpleServer(new TServer.Args(serverTransport).processor(processor));
+		server.serve();*/
 		LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Starting the server on port: " + sslPort);
-		server.serve();
 	}
 
+	public void stopProxyServer() throws TException {
+
+		if(serverTransport != null) {
+			serverTransport.close();
+		}
+	}
 }

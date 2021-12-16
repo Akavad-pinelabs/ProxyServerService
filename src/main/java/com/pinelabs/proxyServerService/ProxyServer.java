@@ -11,9 +11,7 @@ import java.nio.ByteBuffer;
 
 import org.apache.thrift.TException;
 
-
 import com.pinelabs.proxyServerService.logger.LoggerClass;
-import com.pinelabs.proxyServerService.utils.Utils;
 
 public class ProxyServer implements SendReceivePacketService.Iface{
 	
@@ -33,12 +31,12 @@ public class ProxyServer implements SendReceivePacketService.Iface{
 	}
 
 	private ByteBuffer forwardRequest(byte[] messageWritten) {
-		LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Inside forwardRequest" + Utils.bcd2Str(messageWritten));
+		LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Inside forwardRequest");
 		
 		Socket socket = null;
 		OutputStream out = null;
 		InputStream in = null;
-		byte[] data = null;
+		byte[] data = new byte[0];
 		
 		try {
 			socket = new Socket(HSMControllerIp, HSMControllerPort);
@@ -90,6 +88,5 @@ public class ProxyServer implements SendReceivePacketService.Iface{
 			}
 		}
 		return ByteBuffer.wrap(data);
-	}
-	
+	}	
 }

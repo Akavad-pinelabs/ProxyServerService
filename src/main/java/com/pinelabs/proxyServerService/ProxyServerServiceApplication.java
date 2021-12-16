@@ -17,6 +17,10 @@ public class ProxyServerServiceApplication {
 
 	public static void main(String[] args) {
 		SpringApplication.run(ProxyServerServiceApplication.class, args);
+		
+		Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Stopping Proxy Server Service!!!");
+		}));
 	}
 
 	@EventListener(ApplicationReadyEvent.class)
