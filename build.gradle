@@ -15,16 +15,24 @@ repositories {
 configurations {
     all*.exclude module : 'spring-boot-starter-logging'
     all*.exclude module : 'logback-classic'
+    
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter'
 	implementation 'org.springframework.boot:spring-boot-starter-log4j2'
 	implementation 'org.apache.thrift:libthrift:+'
+	implementation 'com.lmax:disruptor:+'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 test {
 	useJUnitPlatform()
 }
-
+configurations.all {
+   resolutionStrategy.eachDependency { DependencyResolveDetails details ->
+   if (details.requested.group == 'org.apache.logging.log4j') {
+    details.useVersion '2.16.0'
+     }
+    }
+}
