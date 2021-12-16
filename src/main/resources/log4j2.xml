@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<Configuration status="WARN" monitorInterval="5">
+
+	<!-- Logging Properties -->
+	<Properties>
+		<Property name="LOG_PATTERN">%d{yyyy-MM-dd'T'HH:mm:ss.SSSZ} [%X{serviceName}] [%X{correlationId}] %highlight{%level}{ERROR=red, INFO=green} [%t] %m%n</Property>
+		<Property name="APP_LOG_ROOT">/var/log/proxyServerServiceLogs/</Property>
+	</Properties>
+
+	<Appenders>
+
+		<!-- Console Appender -->
+		<Console name="Console" target="SYSTEM_OUT" follow="true">
+			<PatternLayout pattern="${LOG_PATTERN}" />
+		</Console>
+
+		<!-- File Appenders on need basis -->
+		<RollingFile name="traceLog"
+			fileName="${APP_LOG_ROOT}/app.log"
+			filePattern="${APP_LOG_ROOT}/app-%d{yyyy-MM-dd}-%i.log">
+			<PatternLayout pattern="${LOG_PATTERN}"/>
+			<Policies>
+				<SizeBasedTriggeringPolicy size="10 MB" />
+				<TimeBasedTriggeringPolicy interval="1"/>
+			</Policies>
+			<DefaultRolloverStrategy max="8" />
+		</RollingFile>
+
+	</Appenders>
+
+	<Loggers>
+
+		<asyncLogger name="com.pinelabs.proxyServerService" additivity="false" level="info">
+			<AppenderRef ref="traceLog" />
+			<AppenderRef ref="Console" />
+		</asyncLogger>
+		
+		<Root level="warn">
+			<AppenderRef ref="traceLog" />
+			<AppenderRef ref="Console" />
+		</Root>
+
+	</Loggers>
+
+</Configuration>
