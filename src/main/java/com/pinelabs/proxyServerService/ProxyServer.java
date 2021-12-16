@@ -13,6 +13,7 @@ import org.apache.thrift.TException;
 
 
 import com.pinelabs.proxyServerService.logger.LoggerClass;
+import com.pinelabs.proxyServerService.utils.Utils;
 
 public class ProxyServer implements SendReceivePacketService.Iface{
 	
@@ -32,7 +33,7 @@ public class ProxyServer implements SendReceivePacketService.Iface{
 	}
 
 	private ByteBuffer forwardRequest(byte[] messageWritten) {
-		LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Inside forwardRequest");
+		LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Inside forwardRequest" + Utils.bcd2Str(messageWritten));
 		
 		Socket socket = null;
 		OutputStream out = null;
@@ -50,16 +51,20 @@ public class ProxyServer implements SendReceivePacketService.Iface{
 			in = new DataInputStream(socket.getInputStream());
 			
 			byte[] uchHeaderBuff = in.readNBytes(RES_HEADER_LEN);
-			
-			int iDataLen = (uchHeaderBuff[6] << 8) & 0xFF00;
-			iDataLen |= uchHeaderBuff[7] & 0x00FF;
-			iDataLen += 1;
-			
-			byte[] uchBodyNTrailBuff = in.readNBytes(iDataLen);
-			
-			data = new byte[RES_HEADER_LEN + iDataLen];
-			System.arraycopy(uchHeaderBuff, 0, data, 0, RES_HEADER_LEN);
-			System.arraycopy(uchBodyNTrailBuff, 0, data, RES_HEADER_LEN, iDataLen);
+			if (uchHeaderBuff != null && uchHeaderBuff.length == RES_HEADER_LEN) {
+				int iDataLen = (uchHeaderBuff[6] << 8) & 0xFF00;
+				iDataLen |= uchHeaderBuff[7] & 0x00FF;
+				iDataLen += 1;
+				
+				byte[] uchBodyNTrailBuff = in.readNBytes(iDataLen);
+				
+				data = new byte[RES_HEADER_LEN + iDataLen];
+				System.arraycopy(uchHeaderBuff, 0, data, 0, RES_HEADER_LEN);
+				System.arraycopy(uchBodyNTrailBuff, 0, data, RES_HEADER_LEN, iDataLen);
+			}
+			else {
+				LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Invalid Data Received");
+			}
 			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Outside forwardRequest");
 		} 
 		catch (UnknownHostException u) {
