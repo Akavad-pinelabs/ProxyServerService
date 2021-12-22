@@ -1,4 +1,4 @@
-package com.pinelabs.proxyServerService;
+package com.pinelabs.proxyServerService.services;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessorFactory;
@@ -11,7 +11,11 @@ import org.apache.thrift.transport.TSSLTransportFactory.TSSLTransportParameters;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.pinelabs.proxyServerService.ProxyServer;
+import com.pinelabs.proxyServerService.SendReceivePacketService;
+import com.pinelabs.proxyServerService.SendReceivePacketService.Processor;
 import com.pinelabs.proxyServerService.logger.LoggerClass;
+import com.pinelabs.socket.SocketPool;
 
 @Service
 public class ProxyServerService {
@@ -24,18 +28,12 @@ public class ProxyServerService {
 
 	@Value("${ssl.port}")
 	private int sslPort;
-
-	@Value("${hsm.ip}")
-	private String HSMControllerIp;
-
-	@Value("${hsm.port}")
-	private int HSMControllerPort;
 	
 	private TServerTransport serverTransport;
 
-	public void startProxyServer() throws TException {
+	public void startProxyServer(SocketPool socketPool) throws TException {
 
-		ProxyServer proxyServer = new ProxyServer(HSMControllerIp, HSMControllerPort);
+		ProxyServer proxyServer = new ProxyServer(socketPool);
 		SendReceivePacketService.Processor<ProxyServer> processor = new SendReceivePacketService.Processor<ProxyServer>(proxyServer);
 					  
 		TSSLTransportParameters params = new TSSLTransportParameters();
