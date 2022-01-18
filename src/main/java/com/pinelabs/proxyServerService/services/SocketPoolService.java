@@ -1,5 +1,7 @@
 package com.pinelabs.proxyServerService.services;
 
+import java.time.Duration;
+
 import org.apache.commons.pool2.impl.GenericObjectPoolConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,12 +20,17 @@ public class SocketPoolService {
 	@Value("${hsm.port}")
 	private int HSMControllerPort;
 	
+	@Value("${hsm.maxSocketPool:10}")
+	private int maxSocketPool;
+	
 	private SocketPool socketPool;
 	
 	public void createSocketPool() {
 		SocketFactory factory = new SocketFactory(HSMControllerIp, HSMControllerPort);
         GenericObjectPoolConfig<SocketClient> config = new GenericObjectPoolConfig<SocketClient>();
-        config.setMaxTotal(10);
+        config.setMaxTotal(maxSocketPool);
+        Duration duration = Duration.ofMillis(15000);
+        config.setMaxWait(duration);
         
         socketPool = new SocketPool(factory, config);
         try {

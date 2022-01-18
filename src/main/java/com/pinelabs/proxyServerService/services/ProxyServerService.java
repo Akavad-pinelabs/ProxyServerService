@@ -29,6 +29,12 @@ public class ProxyServerService {
 	@Value("${ssl.port}")
 	private int sslPort;
 	
+	@Value("${client.minWorkerThread:5}")
+	private int minWorkerThread;
+	
+	@Value("${client.maxWorkerThread:10}")
+	private int maxWorkerThread;
+	
 	private TServerTransport serverTransport;
 
 	public void startProxyServer(SocketPool socketPool) throws TException {
@@ -44,8 +50,8 @@ public class ProxyServerService {
 		final TThreadPoolServer.Args args = new TThreadPoolServer
 			    .Args(serverTransport)
 			    .processorFactory(new TProcessorFactory(processor))
-			    .minWorkerThreads(5)
-			    .maxWorkerThreads(10);
+			    .minWorkerThreads(minWorkerThread)
+			    .maxWorkerThreads(maxWorkerThread);
 
 		final TServer server = new TThreadPoolServer(args);
 		

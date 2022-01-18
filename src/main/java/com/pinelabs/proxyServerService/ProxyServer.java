@@ -1,6 +1,8 @@
 package com.pinelabs.proxyServerService;
 
 import java.nio.ByteBuffer;
+import java.time.Duration;
+
 import org.apache.thrift.TException;
 import com.pinelabs.proxyServerService.logger.LoggerClass;
 import com.pinelabs.socket.SocketClient;
@@ -25,14 +27,19 @@ public class ProxyServer implements SendReceivePacketService.Iface{
 		
 		byte[] data = new byte[0];
 		
-		try {			
+		try {		
+			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "active pool object before borrow "+ socketPool.getNumActive());
 			SocketClient socketClient = socketPool.borrowObject();
-			data = socketClient.sendRequest(messageWritten);	
+			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "active pool object after borrow "+ socketPool.getNumActive());
+			data = socketClient.sendRequest(messageWritten);
+			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "active pool object before return "+ socketPool.getNumActive());
 			socketPool.returnObject(socketClient);
+			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "active pool object after borrow "+ socketPool.getNumActive());
 		} catch (Exception e) {
 			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, e.getMessage());
 		}
 		
+		LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Outside forwardRequest");
 		return ByteBuffer.wrap(data);
 	}
 	
