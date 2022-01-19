@@ -18,7 +18,10 @@ public class ProxyServer implements SendReceivePacketService.Iface{
 	
 	@Override
 	public ByteBuffer sendReceivePacket(ByteBuffer messageWritten) throws TException {
-		ByteBuffer receivedBuff = forwardRequest(messageWritten.array());		
+		ByteBuffer receivedBuff = null;
+		if (messageWritten != null) {
+			receivedBuff = forwardRequest(messageWritten.array());
+		}
 		return receivedBuff;
 	}
 
@@ -28,13 +31,9 @@ public class ProxyServer implements SendReceivePacketService.Iface{
 		byte[] data = new byte[0];
 		
 		try {		
-			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "active pool object before borrow "+ socketPool.getNumActive());
-			SocketClient socketClient = socketPool.borrowObject();
-			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "active pool object after borrow "+ socketPool.getNumActive());
+			SocketClient socketClient = socketPool.borrowObject();			
 			data = socketClient.sendRequest(messageWritten);
-			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "active pool object before return "+ socketPool.getNumActive());
 			socketPool.returnObject(socketClient);
-			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "active pool object after borrow "+ socketPool.getNumActive());
 		} catch (Exception e) {
 			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, e.getMessage());
 		}

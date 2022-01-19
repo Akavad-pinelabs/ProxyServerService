@@ -20,17 +20,34 @@ public class SocketPoolService {
 	@Value("${hsm.port}")
 	private int HSMControllerPort;
 	
-	@Value("${hsm.maxSocketPool:10}")
+	@Value("${hsm.socketPool.maxSocketPool:10}")
 	private int maxSocketPool;
+	
+	@Value("${hsm.socketPool.maxWaitTime:20000}")
+	private int maxWaitTime;
+	
+	@Value("${hsm.socketPool.minEvictableIdleTime:450000}")
+	private int minEvictableIdleTime;
+	
+	@Value("${hsm.socketPool.timeBetweenEvictionRuns:5000}")
+	private int timeBetweenEvictionRuns;
 	
 	private SocketPool socketPool;
 	
 	public void createSocketPool() {
 		SocketFactory factory = new SocketFactory(HSMControllerIp, HSMControllerPort);
         GenericObjectPoolConfig<SocketClient> config = new GenericObjectPoolConfig<SocketClient>();
+
         config.setMaxTotal(maxSocketPool);
-        Duration duration = Duration.ofMillis(15000);
-        config.setMaxWait(duration);
+        
+        Duration duration = Duration.ofMillis(maxWaitTime);
+        config.setMaxWait(duration); // max wait time to get the socket from the socket pool.
+        
+        duration = Duration.ofMillis(minEvictableIdleTime);
+        config.setMinEvictableIdleTime(duration); // evict if socket is idle for defined minimum Evictable Idle Time.
+        
+        duration = Duration.ofMillis(timeBetweenEvictionRuns); 
+        config.setTimeBetweenEvictionRuns(duration); // eviction thread runs in the interval of defined time Between Eviction Runs.
         
         socketPool = new SocketPool(factory, config);
         try {

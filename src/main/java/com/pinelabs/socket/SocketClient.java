@@ -58,4 +58,18 @@ public class SocketClient {
         
         return data;
     }
+    
+    public boolean isConnected() {
+    	return socket.isConnected();
+    }
+    
+    public boolean isInputShutdown() {
+    	return socket.isInputShutdown();
+    }
+    public boolean isOutputShutdown() {
+    	return socket.isOutputShutdown();
+    }
+    public boolean isClosed() {
+    	return socket.isClosed();
+    }
 }
