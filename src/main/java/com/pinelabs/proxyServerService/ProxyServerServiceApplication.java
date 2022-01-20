@@ -8,13 +8,19 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.event.EventListener;
 
 import com.pinelabs.proxyServerService.logger.LoggerClass;
+import com.pinelabs.proxyServerService.services.ProxyServerService;
+import com.pinelabs.proxyServerService.services.SocketPoolService;
+import com.pinelabs.socket.SocketPool;
 
 @SpringBootApplication
 public class ProxyServerServiceApplication {
 
 	@Autowired
 	ProxyServerService proxyServerService;
-
+	
+	@Autowired
+	SocketPoolService socketPoolService;
+	
 	public static void main(String[] args) {
 		SpringApplication.run(ProxyServerServiceApplication.class, args);
 		
@@ -26,13 +32,14 @@ public class ProxyServerServiceApplication {
 	@EventListener(ApplicationReadyEvent.class)
 	public void startProxyServer() {
 		try {
-			proxyServerService.startProxyServer();
+			SocketPool socketPool = socketPoolService.createSocketPool();
+			proxyServerService.startProxyServer(socketPool);
 		} 
 		catch (TException e) {
-			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "startProxyServer Exception: " + e.getMessage());
+			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, "startProxyServer TException: " + e.getMessage());
 		}
 		catch(Exception ex) {
-			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "startProxyServer Exception: " + ex.getMessage());
+			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, "startProxyServer Exception: " + ex.getMessage());
 		}
 	}
 }

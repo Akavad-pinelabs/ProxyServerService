@@ -1,92 +1,44 @@
 package com.pinelabs.proxyServerService;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.net.UnknownHostException;
 import java.nio.ByteBuffer;
 
-import org.apache.thrift.TException;
-
 import com.pinelabs.proxyServerService.logger.LoggerClass;
+import com.pinelabs.socket.SocketClient;
+import com.pinelabs.socket.SocketPool;
 
-public class ProxyServer implements SendReceivePacketService.Iface{
+public class ProxyServer implements SendReceivePacketService.Iface {
 	
-	private String HSMControllerIp;
-	private int HSMControllerPort;
-	private final int RES_HEADER_LEN = 8;
+	private SocketPool socketPool;
 	
-	public ProxyServer(String HSMControllerIp, int HSMControllerPort) {
-		this.HSMControllerIp = HSMControllerIp;
-		this.HSMControllerPort = HSMControllerPort;
+	public ProxyServer(SocketPool socketPool) {
+		this.socketPool = socketPool;
 	}
 	
 	@Override
-	public ByteBuffer sendReceivePacket(ByteBuffer messageWritten) throws TException {
-		ByteBuffer receivedBuff = forwardRequest(messageWritten.array());
+	public ByteBuffer sendReceivePacket(ByteBuffer messageWritten) {
+		ByteBuffer receivedBuff = null;
+		if (messageWritten != null) {
+			receivedBuff = forwardRequest(messageWritten.array());
+		}
 		return receivedBuff;
 	}
 
 	private ByteBuffer forwardRequest(byte[] messageWritten) {
 		LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Inside forwardRequest");
 		
-		Socket socket = null;
-		OutputStream out = null;
-		InputStream in = null;
 		byte[] data = new byte[0];
 		
 		try {
-			socket = new Socket(HSMControllerIp, HSMControllerPort);
-			socket.setSoTimeout(30 * 1000);
-			
-			out = new DataOutputStream(socket.getOutputStream());
-			out.write(messageWritten);
-
-			// takes input from socket
-			in = new DataInputStream(socket.getInputStream());
-			
-			byte[] uchHeaderBuff = in.readNBytes(RES_HEADER_LEN);
-			if (uchHeaderBuff != null && uchHeaderBuff.length == RES_HEADER_LEN) {
-				int iDataLen = (uchHeaderBuff[6] << 8) & 0xFF00;
-				iDataLen |= uchHeaderBuff[7] & 0x00FF;
-				iDataLen += 1;
-				
-				byte[] uchBodyNTrailBuff = in.readNBytes(iDataLen);
-				
-				data = new byte[RES_HEADER_LEN + iDataLen];
-				System.arraycopy(uchHeaderBuff, 0, data, 0, RES_HEADER_LEN);
-				System.arraycopy(uchBodyNTrailBuff, 0, data, RES_HEADER_LEN, iDataLen);
-			}
-			else {
-				LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Invalid Data Received");
-			}
-			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Outside forwardRequest");
-		} 
-		catch (UnknownHostException u) {
-			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, u.getMessage());
+			SocketClient socketClient = socketPool.borrowObject();			
+			data = socketClient.sendRequest(messageWritten);
+			socketPool.returnObject(socketClient);
 		}
-		catch (IOException i) {
-			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, i.getMessage());
+		catch (Exception e) {
+			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, e.getMessage());
 		}
-		finally {
-			try {
-				if (socket != null) {
-					socket.close();
-				}
-				if(out != null) {
-					out.close();
-				}
-				if(in != null) {
-					in.close();
-				}
-			}
-			catch (IOException e) {
-				LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, e.getMessage());
-			}
-		}
+		
+		LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Outside forwardRequest");
 		return ByteBuffer.wrap(data);
-	}	
+	}
+	
 }

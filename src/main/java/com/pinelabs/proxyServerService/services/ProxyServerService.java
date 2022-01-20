@@ -1,9 +1,8 @@
-package com.pinelabs.proxyServerService;
+package com.pinelabs.proxyServerService.services;
 
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TSSLTransportFactory;
 import org.apache.thrift.transport.TServerTransport;
@@ -11,7 +10,10 @@ import org.apache.thrift.transport.TSSLTransportFactory.TSSLTransportParameters;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import com.pinelabs.proxyServerService.ProxyServer;
+import com.pinelabs.proxyServerService.SendReceivePacketService;
 import com.pinelabs.proxyServerService.logger.LoggerClass;
+import com.pinelabs.socket.SocketPool;
 
 @Service
 public class ProxyServerService {
@@ -24,18 +26,18 @@ public class ProxyServerService {
 
 	@Value("${ssl.port}")
 	private int sslPort;
-
-	@Value("${hsm.ip}")
-	private String HSMControllerIp;
-
-	@Value("${hsm.port}")
-	private int HSMControllerPort;
+	
+	@Value("${client.minWorkerThread:5}")
+	private int minWorkerThread;
+	
+	@Value("${client.maxWorkerThread:10}")
+	private int maxWorkerThread;
 	
 	private TServerTransport serverTransport;
 
-	public void startProxyServer() throws TException {
+	public void startProxyServer(SocketPool socketPool) throws TException {
 
-		ProxyServer proxyServer = new ProxyServer(HSMControllerIp, HSMControllerPort);
+		ProxyServer proxyServer = new ProxyServer(socketPool);
 		SendReceivePacketService.Processor<ProxyServer> processor = new SendReceivePacketService.Processor<ProxyServer>(proxyServer);
 					  
 		TSSLTransportParameters params = new TSSLTransportParameters();
@@ -46,8 +48,8 @@ public class ProxyServerService {
 		final TThreadPoolServer.Args args = new TThreadPoolServer
 			    .Args(serverTransport)
 			    .processorFactory(new TProcessorFactory(processor))
-			    .minWorkerThreads(5)
-			    .maxWorkerThreads(10);
+			    .minWorkerThreads(minWorkerThread)
+			    .maxWorkerThreads(maxWorkerThread);
 
 		final TServer server = new TThreadPoolServer(args);
 		
@@ -64,7 +66,6 @@ public class ProxyServerService {
 	}
 
 	public void stopProxyServer() throws TException {
-
 		if(serverTransport != null) {
 			serverTransport.close();
 		}
