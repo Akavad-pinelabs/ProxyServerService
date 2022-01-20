@@ -32,11 +32,10 @@ public class SocketPoolService {
 	@Value("${hsm.socketPool.timeBetweenEvictionRuns:5000}")
 	private int timeBetweenEvictionRuns;
 	
-	private SocketPool socketPool;
-	
-	public void createSocketPool() {
+	public SocketPool createSocketPool() {
 		SocketFactory factory = new SocketFactory(HSMControllerIp, HSMControllerPort);
-        GenericObjectPoolConfig<SocketClient> config = new GenericObjectPoolConfig<SocketClient>();
+        
+		GenericObjectPoolConfig<SocketClient> config = new GenericObjectPoolConfig<SocketClient>();
 
         config.setMaxTotal(maxSocketPool);
         
@@ -46,18 +45,17 @@ public class SocketPoolService {
         duration = Duration.ofMillis(minEvictableIdleTime);
         config.setMinEvictableIdleTime(duration); // evict if socket is idle for defined minimum Evictable Idle Time.
         
-        duration = Duration.ofMillis(timeBetweenEvictionRuns); 
+        duration = Duration.ofMillis(timeBetweenEvictionRuns);
         config.setTimeBetweenEvictionRuns(duration); // eviction thread runs in the interval of defined time Between Eviction Runs.
         
-        socketPool = new SocketPool(factory, config);
+        SocketPool socketPool = new SocketPool(factory, config);
         try {
 			socketPool.preparePool();
-		} catch (Exception e) {
+		}
+        catch (Exception e) {
 			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, e.getMessage());
 		}
+        return socketPool;
 	}
 	
-	public SocketPool getSocketPool() {
-		return socketPool;
-	}
 }

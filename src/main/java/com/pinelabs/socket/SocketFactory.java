@@ -9,7 +9,7 @@ public class SocketFactory implements PooledObjectFactory<SocketClient> {
 	private final String host;
     private final int port;
 	
-    public SocketFactory(String host, int port){
+	public SocketFactory(String host, int port) {
         this.host = host;
         this.port = port;
     }

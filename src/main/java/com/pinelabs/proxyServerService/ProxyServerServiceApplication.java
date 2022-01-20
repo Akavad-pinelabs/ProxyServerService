@@ -32,15 +32,14 @@ public class ProxyServerServiceApplication {
 	@EventListener(ApplicationReadyEvent.class)
 	public void startProxyServer() {
 		try {
-			socketPoolService.createSocketPool();
-			SocketPool socketPool = socketPoolService.getSocketPool();
+			SocketPool socketPool = socketPoolService.createSocketPool();
 			proxyServerService.startProxyServer(socketPool);
 		} 
 		catch (TException e) {
-			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "startProxyServer Exception: " + e.getMessage());
+			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, "startProxyServer TException: " + e.getMessage());
 		}
 		catch(Exception ex) {
-			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "startProxyServer Exception: " + ex.getMessage());
+			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, "startProxyServer Exception: " + ex.getMessage());
 		}
 	}
 }

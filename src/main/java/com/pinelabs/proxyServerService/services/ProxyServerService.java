@@ -3,7 +3,6 @@ package com.pinelabs.proxyServerService.services;
 import org.apache.thrift.TException;
 import org.apache.thrift.TProcessorFactory;
 import org.apache.thrift.server.TServer;
-import org.apache.thrift.server.TSimpleServer;
 import org.apache.thrift.server.TThreadPoolServer;
 import org.apache.thrift.transport.TSSLTransportFactory;
 import org.apache.thrift.transport.TServerTransport;
@@ -13,7 +12,6 @@ import org.springframework.stereotype.Service;
 
 import com.pinelabs.proxyServerService.ProxyServer;
 import com.pinelabs.proxyServerService.SendReceivePacketService;
-import com.pinelabs.proxyServerService.SendReceivePacketService.Processor;
 import com.pinelabs.proxyServerService.logger.LoggerClass;
 import com.pinelabs.socket.SocketPool;
 
@@ -68,7 +66,6 @@ public class ProxyServerService {
 	}
 
 	public void stopProxyServer() throws TException {
-
 		if(serverTransport != null) {
 			serverTransport.close();
 		}

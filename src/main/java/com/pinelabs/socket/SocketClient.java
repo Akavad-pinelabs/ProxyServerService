@@ -24,18 +24,20 @@ public class SocketClient {
 			socket.setSoTimeout(TIMEOUT_IN_MS);
 			out = new DataOutputStream(socket.getOutputStream());
 			in = new DataInputStream(socket.getInputStream());
-			
-		} catch (UnknownHostException e) {
+		} 
+    	catch (UnknownHostException e) {
 			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, e.getMessage());
-		} catch (IOException e) {
+		} 
+    	catch (IOException e) {
 			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, e.getMessage());
 		}
     }
     
     public byte[] sendRequest(byte[] messageWritten) {
     	byte[] data = new byte[0];
-        try{
+		try {
         	out.write(messageWritten);
+        	
         	byte[] uchHeaderBuff = in.readNBytes(RES_HEADER_LEN);
 			if (uchHeaderBuff != null && uchHeaderBuff.length == RES_HEADER_LEN) {
 				int iDataLen = (uchHeaderBuff[6] << 8) & 0xFF00;
@@ -50,20 +52,12 @@ public class SocketClient {
 			}
 			else {
 				LoggerClass.LogMessage(LoggerClass.eMessageType.MT_INFORMATION, "Invalid Data Received");
-			}
-			
-        }catch(IOException e){
+			}	
+        }
+		catch (IOException e) {
         	LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, e.getMessage());
         }
-        
         return data;
     }
-    
-    public boolean isConnected() {
-    	return socket.isConnected();
-    }
-    
-    public boolean isClosed() {
-    	return socket.isClosed();
-    }
+ 
 }

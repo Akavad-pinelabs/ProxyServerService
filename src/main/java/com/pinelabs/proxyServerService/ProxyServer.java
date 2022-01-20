@@ -1,14 +1,12 @@
 package com.pinelabs.proxyServerService;
 
 import java.nio.ByteBuffer;
-import java.time.Duration;
 
-import org.apache.thrift.TException;
 import com.pinelabs.proxyServerService.logger.LoggerClass;
 import com.pinelabs.socket.SocketClient;
 import com.pinelabs.socket.SocketPool;
 
-public class ProxyServer implements SendReceivePacketService.Iface{
+public class ProxyServer implements SendReceivePacketService.Iface {
 	
 	private SocketPool socketPool;
 	
@@ -17,7 +15,7 @@ public class ProxyServer implements SendReceivePacketService.Iface{
 	}
 	
 	@Override
-	public ByteBuffer sendReceivePacket(ByteBuffer messageWritten) throws TException {
+	public ByteBuffer sendReceivePacket(ByteBuffer messageWritten) {
 		ByteBuffer receivedBuff = null;
 		if (messageWritten != null) {
 			receivedBuff = forwardRequest(messageWritten.array());
@@ -30,11 +28,12 @@ public class ProxyServer implements SendReceivePacketService.Iface{
 		
 		byte[] data = new byte[0];
 		
-		try {		
+		try {
 			SocketClient socketClient = socketPool.borrowObject();			
 			data = socketClient.sendRequest(messageWritten);
 			socketPool.returnObject(socketClient);
-		} catch (Exception e) {
+		}
+		catch (Exception e) {
 			LoggerClass.LogMessage(LoggerClass.eMessageType.MT_ERROR, e.getMessage());
 		}
 		
